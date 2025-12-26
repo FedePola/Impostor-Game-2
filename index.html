@@ -26,14 +26,18 @@
       margin-top: 10px;
       border-radius: 6px;
       border: none;
+      font-size: 16px;
     }
     button {
       background: #4caf50;
       color: white;
       cursor: pointer;
     }
+    button.secondary {
+      background: #555;
+    }
     button:hover {
-      background: #43a047;
+      opacity: 0.9;
     }
     .hidden {
       display: none;
@@ -51,8 +55,16 @@
 
 <div class="card hidden" id="reveal">
   <h2 id="playerName"></h2>
-  <p id="roleText"></p>
-  <button onclick="nextPlayer()">Next</button>
+
+  <div id="hiddenRole">
+    <p>Tap when you're alone</p>
+    <button onclick="revealRole()">Reveal Role</button>
+  </div>
+
+  <div id="shownRole" class="hidden">
+    <p id="roleText"></p>
+    <button class="secondary" onclick="hideAndPass()">Hide & Pass</button>
+  </div>
 </div>
 
 <div class="card hidden" id="done">
@@ -62,12 +74,15 @@
 </div>
 
 <script>
-  const secretWords = [
+  // WORD POOL (no repeats)
+  let secretWords = [
     "Beeba","Pierr","Dodo","Pola","Steven","Bavly","Leo","Baher",
     "Petro","Teo","Doris","Jessy","Christine","Karol","Heaven",
     "Tia","Maureen","Clara","Julie","Tutu","Ben","Nathalie",
     "Buckets","Younan","Wella","Cyril M"
   ];
+
+  let remainingWords = [];
 
   let players = [];
   let impostorIndex = 0;
@@ -87,7 +102,15 @@
       }
     }
 
-    currentWord = secretWords[Math.floor(Math.random() * secretWords.length)];
+    // refill words when empty
+    if (remainingWords.length === 0) {
+      remainingWords = [...secretWords];
+    }
+
+    // pick & remove word
+    const wordIndex = Math.floor(Math.random() * remainingWords.length);
+    currentWord = remainingWords.splice(wordIndex, 1)[0];
+
     impostorIndex = Math.floor(Math.random() * players.length);
     currentPlayer = 0;
 
@@ -95,11 +118,18 @@
     document.getElementById("done").classList.add("hidden");
     document.getElementById("reveal").classList.remove("hidden");
 
+    resetReveal();
     showPlayer();
   }
 
   function showPlayer() {
-    document.getElementById("playerName").innerText = players[currentPlayer];
+    document.getElementById("playerName").innerText =
+      players[currentPlayer];
+  }
+
+  function revealRole() {
+    document.getElementById("hiddenRole").classList.add("hidden");
+    document.getElementById("shownRole").classList.remove("hidden");
 
     if (currentPlayer === impostorIndex) {
       document.getElementById("roleText").innerText =
@@ -110,14 +140,22 @@
     }
   }
 
-  function nextPlayer() {
+  function hideAndPass() {
     currentPlayer++;
+
     if (currentPlayer >= players.length) {
       document.getElementById("reveal").classList.add("hidden");
       document.getElementById("done").classList.remove("hidden");
     } else {
+      resetReveal();
       showPlayer();
     }
+  }
+
+  function resetReveal() {
+    document.getElementById("hiddenRole").classList.remove("hidden");
+    document.getElementById("shownRole").classList.add("hidden");
+    document.getElementById("roleText").innerText = "";
   }
 </script>
 
